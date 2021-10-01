@@ -61,5 +61,5 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
            # update the lambda function code
-           aws lambda update-function-code --region eu-central-1 --function-name §{{ env.function_name }} \
+           aws lambda update-function-code --region eu-central-1 --function-name ${{ env.function_name }} \
           --image-uri $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG   \
