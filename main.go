@@ -1,19 +1,28 @@
 package main
 
 import (
-	"github.com/aws/aws-lambda-go/events"
+	"encoding/json"
+	"lumaghg/dualis-crawler/crawler"
+
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type MyEvent struct {
-	Name string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-func HandleRequest(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       "Hello World",
-	}, nil
+type MyResponse struct {
+	body string
+}
+
+func HandleRequest(event MyEvent) (MyResponse, error) {
+	results, _ := crawler.GetDualisCrawlResults(event.Email, event.Password)
+	jsonResults, err := json.Marshal(results)
+	if err != nil {
+		return MyResponse{}, err
+	}
+	return MyResponse{body: string(jsonResults)}, nil
 }
 
 func main() {
