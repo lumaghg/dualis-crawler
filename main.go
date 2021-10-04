@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"lumaghg/dualis-crawler/crawler"
-
-	"github.com/aws/aws-lambda-go/lambda"
+	"time"
 )
 
 type MyEvent struct {
@@ -26,5 +26,9 @@ func HandleRequest(event MyEvent) (MyResponse, error) {
 }
 
 func main() {
-	lambda.Start(HandleRequest)
+	//lambda.Start(HandleRequest)
+	start := time.Now()
+	HandleRequest(MyEvent{Email: "s201808@student.dhbw-mannheim.de", Password: "xj3ghgPUx"})
+
+	fmt.Println(time.Since(start))
 }

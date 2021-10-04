@@ -8,6 +8,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -256,35 +257,84 @@ func (app *App) extractGradeDetailLinks(gradePageURL string) ([]string, error) {
 
 func (app *App) extractGrades(gradeDetailLinks []string) ([]Course, error) {
 	client := app.Client
-	courses := []Course{}
-	for _, gradeURL := range gradeDetailLinks {
-		response, err := client.Get(BaseURL + gradeURL)
-		if err != nil {
-			return []Course{}, nil
-		}
-		document, _ := goquery.NewDocumentFromReader(response.Body)
-		courseName, _ := document.Find("h1").Html()
-		course := Course{
-			Name: courseName,
-		}
-		examinations := []examination{}
-		document.Find("table:first-of-type").Find("tr").Each(func(i int, s *goquery.Selection) {
-			examination := examination{}
-			s.Find("td[class='tbdata']").Each(func(i int, s *goquery.Selection) {
-				if i == 1 {
-					examination.Exam_type = strings.TrimSpace(s.Text())
-				}
-				if i == 3 {
-					examination.Grade = strings.TrimSpace(s.Text())
+	var detailGradeWaitGroup sync.WaitGroup
+	errChan := make(chan error, 1)
+	courseChan := make(chan Course, len(gradeDetailLinks))
+	//get every detail page
+
+	for i, gradeURL := range gradeDetailLinks {
+
+		//increment the wait group, then create the goroutine
+		detailGradeWaitGroup.Add(1)
+
+		go func(req_url string, waitGroup *sync.WaitGroup, courseChan chan<- Course, errChan chan<- error, i int) {
+			fmt.Printf("routine %d started", i)
+			//ensure, that the function signals it's completion in any case
+			defer waitGroup.Done()
+			defer fmt.Printf("routine %d finished", i)
+
+			response, err := client.Get(req_url)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			document, err := goquery.NewDocumentFromReader(response.Body)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			//find the title of the course and save it
+			courseName, err := document.Find("h1").Html()
+			if err != nil {
+				errChan <- err
+				return
+			}
+			course := Course{
+				Name: courseName,
+			}
+			examinations := []examination{}
+			//find all parts of the course, i.e. exam in 1st and presentation in 2nd semester
+			//and save them in the examinations array
+			document.Find("table:first-of-type").Find("tr").Each(func(i int, s *goquery.Selection) {
+				examination := examination{}
+				s.Find("td[class='tbdata']").Each(func(i int, s *goquery.Selection) {
+					//the 2nd column holds the Exam type (i.e. Klausur (50%))
+					if i == 1 {
+						examination.Exam_type = strings.TrimSpace(s.Text())
+					}
+					//the 4th column holds the grade (i.e. 2,1)
+					if i == 3 {
+						examination.Grade = strings.TrimSpace(s.Text())
+					}
+				})
+				//dont append rows without content (dualis uses tr with empty tds for spacing)
+				if examination.Exam_type != "" {
+					examinations = append(examinations, examination)
 				}
 			})
-			if examination.Exam_type != "" {
-				examinations = append(examinations, examination)
-			}
-		})
-		course.Examinations = examinations
-		courses = append(courses, course)
+			//add the examinations to the course struct
+			course.Examinations = examinations
+			//send the assembled course struct on the course channel
+			courseChan <- course
+		}(BaseURL+gradeURL, &detailGradeWaitGroup, courseChan, errChan, i)
 	}
+	//wait for all goroutines to finish, then close the courseChannel
+	//so that range can be used to iterate
+	detailGradeWaitGroup.Wait()
+	close(courseChan)
+
+	//check if any errors were send on the error channel
+	if len(errChan) != 0 {
+		return []Course{}, <-errChan
+	}
+	//append all courses from the courseChannel into an array
+	courses := []Course{}
+	for course := range courseChan {
+		courses = append(courses, course)
+
+	}
+	// debug purposes
 	for _, v := range courses {
 		fmt.Println(v.Name)
 		fmt.Println(v.Examinations)
