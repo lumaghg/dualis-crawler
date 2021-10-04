@@ -53,7 +53,7 @@ func GetDualisCrawlResults(email string, password string) ([]Course, error) {
 		Client: &http.Client{Jar: jar},
 	}
 
-	loginInput, err := app.getLoginData()
+	loginInput, err := app.getLoginData(email, password)
 	if err != nil {
 		return []Course{}, err
 	}
@@ -78,7 +78,7 @@ func GetDualisCrawlResults(email string, password string) ([]Course, error) {
 	return courses, nil
 }
 
-func (app *App) getLoginData() (LoginInput, error) {
+func (app *App) getLoginData(email string, password string) (LoginInput, error) {
 	loginURL := BaseURL + "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000324,-Awelcome"
 	client := app.Client
 	//get login Page document
@@ -111,8 +111,8 @@ func (app *App) getLoginData() (LoginInput, error) {
 		Menu_type: menu_type,
 		Browser:   "",
 		Plattform: "",
-		Usrname:   "s201808@student.dhbw-mannheim.de",
-		Pass:      "xj3ghgPUx",
+		Usrname:   email,
+		Pass:      password,
 	}
 
 	return loginInput, err
@@ -213,7 +213,7 @@ func (app *App) getGradePageURL(refreshURL string) (string, error) {
 	document, _ := goquery.NewDocumentFromReader(startPageResponse.Body)
 	gradePageURL, exists := document.Find("a[class='depth_1 link000307 navLink ']").Attr("href")
 	if !exists {
-		return "", fmt.Errorf("Grade page url not found")
+		return "", fmt.Errorf("grade page url not found")
 	}
 	return gradePageURL, nil
 }
@@ -258,7 +258,7 @@ func (app *App) extractGradeDetailLinks(gradePageURL string) ([]string, error) {
 func (app *App) extractGrades(gradeDetailLinks []string) ([]Course, error) {
 	client := app.Client
 	var detailGradeWaitGroup sync.WaitGroup
-	errChan := make(chan error, len(gradeDetailLinks))
+	errChan := make(chan error, 1)
 	courseChan := make(chan Course, len(gradeDetailLinks))
 	//get every detail page
 
@@ -268,10 +268,10 @@ func (app *App) extractGrades(gradeDetailLinks []string) ([]Course, error) {
 		detailGradeWaitGroup.Add(1)
 
 		go func(req_url string, waitGroup *sync.WaitGroup, courseChan chan<- Course, errChan chan<- error, i int) {
-			fmt.Printf("routine %d started", i)
+			fmt.Printf("routine %d started \n", i)
 			//ensure, that the function signals it's completion in any case
 			defer waitGroup.Done()
-			defer fmt.Printf("routine %d finished", i)
+			defer fmt.Printf("routine %d finished\n", i)
 
 			response, err := client.Get(req_url)
 			if err != nil {
