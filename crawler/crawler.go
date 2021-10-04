@@ -258,7 +258,7 @@ func (app *App) extractGradeDetailLinks(gradePageURL string) ([]string, error) {
 func (app *App) extractGrades(gradeDetailLinks []string) ([]Course, error) {
 	client := app.Client
 	var detailGradeWaitGroup sync.WaitGroup
-	errChan := make(chan error, 1)
+	errChan := make(chan error, len(gradeDetailLinks))
 	courseChan := make(chan Course, len(gradeDetailLinks))
 	//get every detail page
 
