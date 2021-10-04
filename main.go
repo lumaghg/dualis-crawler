@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"lumaghg/dualis-crawler/crawler"
 	"time"
+
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type MyEvent struct {
@@ -17,8 +19,11 @@ type MyResponse struct {
 }
 
 func HandleRequest(event MyEvent) (MyResponse, error) {
+	start := time.Now()
+
 	results, _ := crawler.GetDualisCrawlResults(event.Email, event.Password)
 	jsonResults, err := json.Marshal(results)
+	fmt.Println(time.Since(start))
 	if err != nil {
 		return MyResponse{}, err
 	}
@@ -26,9 +31,6 @@ func HandleRequest(event MyEvent) (MyResponse, error) {
 }
 
 func main() {
-	//lambda.Start(HandleRequest)
-	start := time.Now()
-	HandleRequest(MyEvent{Email: "s201808@student.dhbw-mannheim.de", Password: "xj3ghgPUx"})
+	lambda.Start(HandleRequest)
 
-	fmt.Println(time.Since(start))
 }
