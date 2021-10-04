@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"lumaghg/dualis-crawler/crawler"
 	"time"
+
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type MyEvent struct {
@@ -29,6 +31,5 @@ func HandleRequest(event MyEvent) (MyResponse, error) {
 }
 
 func main() {
-	//lambda.Start(HandleRequest)
-	HandleRequest(MyEvent{Email: "s201808@student.dhbw-mannheim.de", Password: "xj3ghgPUx"})
+	lambda.Start(HandleRequest)
 }
