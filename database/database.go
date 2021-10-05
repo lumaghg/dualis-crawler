@@ -16,9 +16,9 @@ type App struct {
 }
 
 type DynamoCourse struct {
-	email      string
-	entry_type string
-	courses    []crawler.Course
+	Email      string
+	Entry_type string
+	Courses    []crawler.Course
 }
 
 func CheckNewGrades(courses []crawler.Course, email string) {
@@ -37,7 +37,7 @@ func CheckNewGrades(courses []crawler.Course, email string) {
 func (app *App) updateDatabase(courses []crawler.Course, email string) ([]crawler.Course, error) {
 	//wrap courses with dynamo keys
 	client := app.dynamoClient
-	dynamoCourses := DynamoCourse{email: email, entry_type: "GRADE", courses: courses}
+	dynamoCourses := DynamoCourse{Email: email, Entry_type: "GRADE", Courses: courses}
 	//transform into dynamo compatible type
 	coursesMap, err := dynamodbattribute.MarshalMap(dynamoCourses)
 	if err != nil {
