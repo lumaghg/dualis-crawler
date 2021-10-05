@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"lumaghg/dualis-crawler/crawler"
+	"lumaghg/dualis-crawler/database"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -27,6 +28,8 @@ func HandleRequest(event MyEvent) (MyResponse, error) {
 	if err != nil {
 		return MyResponse{}, err
 	}
+	database.CheckNewGrades(results, event.Email)
+
 	return MyResponse{body: string(jsonResults)}, nil
 }
 
