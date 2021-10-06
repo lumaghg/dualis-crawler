@@ -21,6 +21,7 @@ func HandleRequest(event MyEvent) {
 	results, _ := crawler.GetDualisCrawlResults(event.Email, event.Password)
 	fmt.Println(time.Since(start))
 	dualisChanges, err := database.CompareAndUpdateCourses(results, event.Email)
+	fmt.Println(dualisChanges)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -30,7 +31,6 @@ func HandleRequest(event MyEvent) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	return
 }
 
 func main() {
