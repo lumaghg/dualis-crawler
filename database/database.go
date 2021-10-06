@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"log"
 	"lumaghg/dualis-crawler/crawler"
 
@@ -29,15 +30,37 @@ func CheckNewGrades(courses []crawler.Course, email string) {
 
 	svc := dynamodb.New(sess)
 
-	app := App{dynamoClient: svc, tableName: "DUALIS_STORE"}
+	gradesApp := App{dynamoClient: svc, tableName: "DUALIS_GRADES"}
 
-	app.updateDatabase(courses, email)
+	gradesApp.updateDatabase(courses, email)
 }
 
 func (app *App) updateDatabase(courses []crawler.Course, email string) ([]crawler.Course, error) {
-	//wrap courses with dynamo keys
+
 	client := app.dynamoClient
-	dynamoCourses := DynamoCourse{Email: email, Entry_type: "GRADE", Courses: courses}
+	result, err := client.GetItem(&dynamodb.GetItemInput{
+		TableName: aws.String(app.tableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"Email": {
+				N: aws.String(email),
+			},
+		},
+	})
+	if err != nil {
+		log.Fatalf("Got error calling GetItem: %s", err)
+	}
+
+	oldCourses := []crawler.Course{}
+
+	err = dynamodbattribute.UnmarshalMap(result.Item, &oldCourses)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
+	}
+
+	fmt.Println(oldCourses)
+
+	//wrap courses with dynamo keys
+	dynamoCourses := DynamoCourse{Email: email, Courses: courses}
 	//transform into dynamo compatible type
 	coursesMap, err := dynamodbattribute.MarshalMap(dynamoCourses)
 	if err != nil {
