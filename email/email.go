@@ -24,12 +24,12 @@ func SendUpdateEmail(dualisChanges []crawler.Course, notificationEmail string) e
 	//construct html email body
 	htmlBody := "<h3>Folgende Module haben neue Bewertungen:</h3><br>"
 	for _, course := range dualisChanges {
-		htmlBody = htmlBody + course.Name + ": <br>"
+		htmlBody = htmlBody + "<br>" + course.Name + ": <br>"
 		for _, examination := range course.Examinations {
-			htmlBody = htmlBody + examination.Exam_type + ": " + examination.Grade + "<br>"
+			htmlBody = htmlBody + examination.Exam_type + ": <b>" + examination.Grade + "</b><br>"
 		}
 	}
-	htmlBody = htmlBody + "\nVielen Dank für dein Vertrauen in den Dualis-Bot!"
+	htmlBody = htmlBody + "<br>Vielen Dank für dein Vertrauen in den Dualis-Bot!"
 
 	//construct text email body
 	textBody := "Folgende Module haben neue Bewertungen:\n\n"

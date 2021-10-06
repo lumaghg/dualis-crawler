@@ -16,12 +16,6 @@ const (
 	CourseTableName = "DUALIS_GRADES"
 )
 
-type App struct {
-	dynamoClient *dynamodb.DynamoDB
-	tableName    string
-	email        string
-}
-
 type DynamoCourse struct {
 	Email   string
 	Courses []crawler.Course
