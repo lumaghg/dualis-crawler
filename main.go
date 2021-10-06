@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"lumaghg/dualis-crawler/crawler"
 	"lumaghg/dualis-crawler/database"
+	"lumaghg/dualis-crawler/email"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -20,14 +21,14 @@ func HandleRequest(event MyEvent) error {
 
 	results, _ := crawler.GetDualisCrawlResults(event.Email, event.Password)
 	fmt.Println(time.Since(start))
-	dualisChanges, err := database.CompareAndUpdateCourses(results, event.Email)
+	dualisChanges, err := database.UpdateDatabaseAndGetChanges(results, event.Email)
 	fmt.Println(dualisChanges)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 	if len(dualisChanges) > 1 {
-		err = database.SendUpdateEmail(dualisChanges, event.NotificationEmail)
+		err = email.SendUpdateEmail(dualisChanges, event.NotificationEmail)
 	}
 	if err != nil {
 		fmt.Println(err)
