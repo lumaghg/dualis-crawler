@@ -5,13 +5,7 @@
 
 name: Deploy to Amazon ECS
 
-on:
-  push:
-    branches: 
-    - main
-  pull_request:
-    branches:
-    - main
+on: [push, pull_request]
 
 defaults:
   run:
