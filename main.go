@@ -24,7 +24,12 @@ func HandleRequest(event MyEvent) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	err = database.SendUpdateEmail(dualisChanges, event.NotificationEmail)
+	if len(dualisChanges) > 1 {
+		err = database.SendUpdateEmail(dualisChanges, event.NotificationEmail)
+	}
+	if err != nil {
+		fmt.Println(err)
+	}
 	return
 }
 

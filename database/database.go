@@ -123,10 +123,13 @@ func SendUpdateEmail(dualisChanges []crawler.Course, notificationEmail string) e
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("eu-central-1")},
 	)
+	if err != nil {
+		return err
+	}
 
 	// Create an SES session.
 	svc := ses.New(sess)
-
+	//construct html email body
 	htmlBody := "<h3>Folgende Module haben neue Bewertungen:</h3><br>"
 	for _, course := range dualisChanges {
 		htmlBody = htmlBody + course.Name + ": <br>"
@@ -136,8 +139,8 @@ func SendUpdateEmail(dualisChanges []crawler.Course, notificationEmail string) e
 	}
 	htmlBody = htmlBody + "\nVielen Dank für dein Vertrauen in den Dualis-Bot!"
 
+	//construct text email body
 	textBody := "Folgende Module haben neue Bewertungen:\n\n"
-
 	for _, course := range dualisChanges {
 		textBody = textBody + course.Name + ":\n"
 		for _, examination := range course.Examinations {
