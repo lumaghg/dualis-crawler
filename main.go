@@ -15,7 +15,7 @@ type MyEvent struct {
 	NotificationEmail string `json:"notificationEmail"`
 }
 
-func HandleRequest(event MyEvent) {
+func HandleRequest(event MyEvent) error {
 	start := time.Now()
 
 	results, _ := crawler.GetDualisCrawlResults(event.Email, event.Password)
@@ -24,13 +24,16 @@ func HandleRequest(event MyEvent) {
 	fmt.Println(dualisChanges)
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
 	if len(dualisChanges) > 1 {
 		err = database.SendUpdateEmail(dualisChanges, event.NotificationEmail)
 	}
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
+	return nil
 }
 
 func main() {
