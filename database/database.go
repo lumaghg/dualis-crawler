@@ -58,7 +58,6 @@ func UpdateDatabaseAndGetChanges(newCourses []crawler.Course, email string) ([]c
 	 */
 	if len(oldCourses) > 0 {
 		differentCourses = getCourseDifferences(oldCourses, newCourses)
-	} else {
 
 		//wrap courses with dynamo keys
 		dynamoCourses := DynamoCourse{Email: email, Courses: newCourses}
