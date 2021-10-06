@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"lumaghg/dualis-crawler/crawler"
 	"lumaghg/dualis-crawler/database"
@@ -11,29 +10,22 @@ import (
 )
 
 type MyEvent struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email             string `json:"email"`
+	Password          string `json:"password"`
+	NotificationEmail string `json:"notificationEmail"`
 }
 
-type MyResponse struct {
-	body string
-}
-
-func HandleRequest(event MyEvent) (MyResponse, error) {
+func HandleRequest(event MyEvent) {
 	start := time.Now()
 
 	results, _ := crawler.GetDualisCrawlResults(event.Email, event.Password)
-	jsonResults, err := json.Marshal(results)
 	fmt.Println(time.Since(start))
+	dualisChanges, err := database.CompareAndUpdateCourses(results, event.Email)
 	if err != nil {
-		return MyResponse{}, err
+		fmt.Println(err)
 	}
-	err = database.CompareAndUpdateCourses(results, event.Email)
-	if err != nil {
-		return MyResponse{}, nil
-	}
-
-	return MyResponse{body: string(jsonResults)}, nil
+	err = database.SendUpdateEmail(dualisChanges, event.NotificationEmail)
+	return
 }
 
 func main() {
