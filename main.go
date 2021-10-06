@@ -28,7 +28,7 @@ func HandleRequest(event MyEvent) (MyResponse, error) {
 	if err != nil {
 		return MyResponse{}, err
 	}
-	database.CheckNewGrades(results, event.Email)
+	database.CompareGrades(results, event.Email)
 
 	return MyResponse{body: string(jsonResults)}, nil
 }

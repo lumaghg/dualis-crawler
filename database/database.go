@@ -22,7 +22,7 @@ type DynamoCourse struct {
 	Courses    []crawler.Course
 }
 
-func CheckNewGrades(courses []crawler.Course, email string) {
+func CompareGrades(courses []crawler.Course, email string) {
 	//create Session and Client
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
@@ -42,7 +42,7 @@ func (app *App) updateDatabase(courses []crawler.Course, email string) ([]crawle
 		TableName: aws.String(app.tableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"Email": {
-				N: aws.String(email),
+				S: aws.String(email),
 			},
 		},
 	})
