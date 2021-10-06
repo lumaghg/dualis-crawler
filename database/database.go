@@ -38,7 +38,10 @@ func CompareAndUpdateCourses(courses []crawler.Course, email string) error {
 	if err != nil {
 		return err
 	}
-	err = gradesApp.SendUpdateEmail(dualisChanges)
+	fmt.Println("dualis changes: \n", dualisChanges)
+	if len(dualisChanges) > 0 {
+		err = gradesApp.SendUpdateEmail(dualisChanges)
+	}
 	return err
 }
 
@@ -67,7 +70,6 @@ func (app *App) updateDatabaseAndGetChanges(newCourses []crawler.Course) ([]craw
 	}
 
 	oldCourses := dynamoItem.Courses
-	fmt.Println(oldCourses)
 	differentCourses := []crawler.Course{}
 	/**
 	* If the retrieved Item is empty, leave the differentCourses empty
@@ -85,7 +87,7 @@ func (app *App) updateDatabaseAndGetChanges(newCourses []crawler.Course) ([]craw
 		if err != nil {
 			log.Fatalf("Got error marshalling map: %s", err)
 		}
-		//insert item into database
+		//if an item exists, replace it with the new, if not, create it
 		input := &dynamodb.PutItemInput{
 			Item:      coursesMap,
 			TableName: aws.String(app.tableName),
