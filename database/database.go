@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	CourseTableName = "DUALIS_STORE"
+	CourseTableName = "DUALIS_GRADES"
 )
 
 type App struct {
