@@ -1,36 +1,40 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"lumaghg/dualis-crawler/crawler"
 	"lumaghg/dualis-crawler/database"
+	"lumaghg/dualis-crawler/email"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type MyEvent struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email             string `json:"email"`
+	Password          string `json:"password"`
+	NotificationEmail string `json:"notificationEmail"`
 }
 
-type MyResponse struct {
-	body string
-}
-
-func HandleRequest(event MyEvent) (MyResponse, error) {
+func HandleRequest(event MyEvent) error {
 	start := time.Now()
 
 	results, _ := crawler.GetDualisCrawlResults(event.Email, event.Password)
-	jsonResults, err := json.Marshal(results)
 	fmt.Println(time.Since(start))
+	dualisChanges, err := database.UpdateDatabaseAndGetChanges(results, event.Email)
+	fmt.Println(dualisChanges)
 	if err != nil {
-		return MyResponse{}, err
+		fmt.Println(err)
+		return err
 	}
-	database.CheckNewGrades(results, event.Email)
-
-	return MyResponse{body: string(jsonResults)}, nil
+	if len(dualisChanges) > 1 {
+		err = email.SendUpdateEmail(dualisChanges, event.NotificationEmail)
+	}
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
 }
 
 func main() {
