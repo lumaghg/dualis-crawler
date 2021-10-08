@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "dualis-crawler:dualis-crawler (go1.x)",
+            "invokeTarget": {
+                "target": "code",
+                "projectRoot": "${workspaceFolder}/",
+                "lambdaHandler": "dualis-crawler"
+            },
+            "lambda": {
+                "runtime": "go1.x",
+                "payload": {},
+                "environmentVariables": {}
+            }
+        }
+    ]
+}

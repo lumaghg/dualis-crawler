@@ -84,17 +84,37 @@ func UpdateDatabaseAndGetChanges(newCourses []crawler.Course, email string) ([]c
 }
 
 func getCourseDifferences(oldCourses []crawler.Course, newCourses []crawler.Course) []crawler.Course {
+	/*
+		compare the differences, so that new Courses and new Examinations and
+		changes / updates in the exminations are found
+		=> 1. find courses with the same name
+		=> 2. check for every Examination of the new course, if it has a
+			  deepEqual in the oldCourse, if not, save the examination in the changes
+		=> 3. if there are changes on examination level, add the course with the name and
+			  the examination changes to the slice of course changes
+	*/
 	courseDifferences := []crawler.Course{}
 	for _, newCourse := range newCourses {
-		containsCourse := false
+		examinationDifferences := []crawler.Examination{}
 		for _, oldCourse := range oldCourses {
-			if reflect.DeepEqual(newCourse, oldCourse) {
-				containsCourse = true
+			if newCourse.Name == oldCourse.Name {
+				for _, newExamination := range newCourse.Examinations {
+					containsExamination := false
+					for _, oldExamination := range oldCourse.Examinations {
+						if reflect.DeepEqual(newExamination, oldExamination) {
+							containsExamination = true
+						}
+					}
+					if !containsExamination {
+						examinationDifferences = append(examinationDifferences, newExamination)
+					}
+				}
 			}
 		}
 
-		if !containsCourse {
-			courseDifferences = append(courseDifferences, newCourse)
+		if len(examinationDifferences) > 0 {
+			courseDifference := crawler.Course{Name: newCourse.Name, Examinations: examinationDifferences}
+			courseDifferences = append(courseDifferences, courseDifference)
 		}
 	}
 	return courseDifferences

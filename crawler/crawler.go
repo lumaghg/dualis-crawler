@@ -38,10 +38,10 @@ type LoginInput struct {
 
 type Course struct {
 	Name         string        `json:"name"`
-	Examinations []examination `json:"examinations"`
+	Examinations []Examination `json:"examinations"`
 }
 
-type examination struct {
+type Examination struct {
 	Exam_type string `json:"exam_type"`
 	Grade     string `json:"grade"`
 }
@@ -293,11 +293,11 @@ func (app *App) extractGrades(gradeDetailLinks []string) ([]Course, error) {
 			course := Course{
 				Name: courseName,
 			}
-			examinations := []examination{}
+			examinations := []Examination{}
 			//find all parts of the course, i.e. exam in 1st and presentation in 2nd semester
 			//and save them in the examinations array
 			document.Find("table:first-of-type").Find("tr").Each(func(i int, s *goquery.Selection) {
-				examination := examination{}
+				examination := Examination{}
 				s.Find("td[class='tbdata']").Each(func(i int, s *goquery.Selection) {
 					//the 2nd column holds the Exam type (i.e. Klausur (50%))
 					if i == 1 {
