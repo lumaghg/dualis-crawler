@@ -46,6 +46,5 @@ func HandleRequest(event MyEvent) (string, error) {
 }
 
 func main() {
-	//HandleRequest(MyEvent{Email: "s201808@student.dhbw-mannheim.de", Password: "xj3ghgPUx"})
 	lambda.Start(HandleRequest)
 }
